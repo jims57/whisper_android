@@ -83,3 +83,5 @@ whisper_java/*.swo
 whisper_native/*.swo
 whisper_java/*.swn
 whisper_native/*.swn
+whisper_native/app/src/main/assets/whisper-tiny-zh-f16.tflite
+whisper_native/app/src/main/assets/whisper-tiny-zh.tflite
