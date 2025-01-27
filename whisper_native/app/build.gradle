@@ -56,6 +56,8 @@ dependencies {
     implementation 'org.tensorflow:tensorflow-lite:2.14.0'
     implementation 'org.tensorflow:tensorflow-lite-support:0.4.4'
 
+    implementation 'com.github.houbb:opencc4j:1.7.2'
+
     // TensorFlow Lite GPU delegate for acceleration
 //    implementation 'org.tensorflow:tensorflow-lite-gpu:2.14.0'
 //    implementation 'org.tensorflow:tensorflow-lite-gpu-api:2.14.0'

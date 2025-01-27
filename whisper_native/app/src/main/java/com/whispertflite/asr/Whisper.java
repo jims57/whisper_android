@@ -47,6 +47,8 @@ public class Whisper {
     private final Condition hasTask = taskLock.newCondition();
     private volatile boolean taskAvailable = false;
 
+    private boolean mConvertToSimplifiedChinese = false;
+
     public Whisper(Context context) {
 //        this.mWhisperEngine = new WhisperEngineJava(context);
         this.mWhisperEngine = new WhisperEngineNative(context);
@@ -208,5 +210,10 @@ public class Whisper {
             }
             return audioBufferQueue.poll();
         }
+    }
+
+    public void setConvertToSimplifiedChinese(boolean convert) {
+        this.mConvertToSimplifiedChinese = convert;
+        mWhisperEngine.setConvertToSimplifiedChinese(convert);
     }
 }

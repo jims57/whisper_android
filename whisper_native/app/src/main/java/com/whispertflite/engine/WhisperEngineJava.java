@@ -8,6 +8,7 @@ import android.util.Log;
 //import com.google.android.gms.tflite.java.TfLite;
 import com.whispertflite.utils.WaveUtil;
 import com.whispertflite.utils.WhisperUtil;
+import com.whispertflite.utils.ChineseConverter;
 
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Interpreter;
@@ -26,6 +27,7 @@ import java.nio.channels.FileChannel;
 public class WhisperEngineJava implements WhisperEngine {
     private final String TAG = "WhisperEngineJava";
     private final WhisperUtil mWhisperUtil = new WhisperUtil();
+    private boolean mConvertToSimplifiedChinese = false;
 
     private final Context mContext;
     private boolean mIsInitialized = false;
@@ -86,6 +88,11 @@ public class WhisperEngineJava implements WhisperEngine {
     @Override
     public String transcribeBuffer(float[] samples) {
         return null;
+    }
+
+    @Override
+    public void setConvertToSimplifiedChinese(boolean convert) {
+        mConvertToSimplifiedChinese = convert;
     }
 
     // Load TFLite model
@@ -201,7 +208,9 @@ public class WhisperEngineJava implements WhisperEngine {
             // Get word for token and Skip additional token
             if (token < mWhisperUtil.getTokenEOT()) {
                 String word = mWhisperUtil.getWordFromToken(token);
-                //Log.d(TAG, "Adding token: " + token + ", word: " + word);
+                if (mConvertToSimplifiedChinese) {
+                    word = ChineseConverter.toSimplified(word);
+                }
                 result.append(word);
             } else {
                 if (token == mWhisperUtil.getTokenTranscribe())

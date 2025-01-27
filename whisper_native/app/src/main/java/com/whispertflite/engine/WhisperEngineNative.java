@@ -2,6 +2,7 @@ package com.whispertflite.engine;
 
 import android.content.Context;
 import android.util.Log;
+import com.whispertflite.utils.ChineseConverter;
 
 public class WhisperEngineNative implements WhisperEngine {
     private final String TAG = "WhisperEngineNative";
@@ -9,6 +10,7 @@ public class WhisperEngineNative implements WhisperEngine {
 
     private final Context mContext;
     private boolean mIsInitialized = false;
+    private boolean mConvertToSimplifiedChinese = false;
 
     public WhisperEngineNative(Context context) {
         mContext = context;
@@ -36,12 +38,27 @@ public class WhisperEngineNative implements WhisperEngine {
 
     @Override
     public String transcribeBuffer(float[] samples) {
-        return transcribeBuffer(nativePtr, samples);
+        String result = transcribeBuffer(nativePtr, samples);
+        if (mConvertToSimplifiedChinese && result != null) {
+            return ChineseConverter.toSimplified(result);
+        }
+        return result;
     }
 
     @Override
     public String transcribeFile(String waveFile) {
-        return transcribeFile(nativePtr, waveFile);
+        String result = transcribeFile(nativePtr, waveFile);
+        if (mConvertToSimplifiedChinese && result != null) {
+            return ChineseConverter.toSimplified(result);
+        }
+        return result;
+    }
+
+    @Override
+    public void setConvertToSimplifiedChinese(boolean convert) {
+        mConvertToSimplifiedChinese = convert;
+        // Remove the native call for now
+        // setConvertToSimplifiedChinese(nativePtr, convert);
     }
 
     private int loadModel(String modelPath, boolean isMultilingual) {

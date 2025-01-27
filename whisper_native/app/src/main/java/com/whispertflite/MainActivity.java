@@ -239,6 +239,7 @@ public class MainActivity extends AppCompatActivity {
         File vocabFile = new File(sdcardDataFolder, vocabFileName);
 
         mWhisper = new Whisper(this);
+        mWhisper.setConvertToSimplifiedChinese(true);
         mWhisper.loadModel(modelFile, vocabFile, isMultilingualModel);
         mWhisper.setListener(new Whisper.WhisperListener() {
             @Override
