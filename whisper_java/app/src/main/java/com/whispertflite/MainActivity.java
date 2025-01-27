@@ -274,10 +274,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResultReceived(String result) {
                 long timeTaken = System.currentTimeMillis() - startTime;
+                
+                // Convert Traditional Chinese to Simplified Chinese
+                String simplifiedResult = ChineseConverter.toSimplified(result);
+                
                 handler.post(() -> tvStatus.setText("Processing done in " + timeTaken + "ms"));
-
-                Log.d(TAG, "Result: " + result);
-                handler.post(() -> tvResult.append(result));
+                Log.d(TAG, "Result: " + simplifiedResult);
+                handler.post(() -> tvResult.append(simplifiedResult));
             }
         });
     }
@@ -487,4 +490,13 @@ public class MainActivity extends AppCompatActivity {
 //            whisper.start();
 //        }
 //    }
+
+    // Add this utility class for Chinese character conversion
+    public static class ChineseConverter {
+        public static String toSimplified(String traditional) {
+            return android.icu.text.Transliterator
+                .getInstance("Traditional-Simplified")
+                .transliterate(traditional);
+        }
+    }
 }
