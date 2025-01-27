@@ -38,33 +38,40 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
-    // whisper-tiny.tflite and whisper-base-nooptim.en.tflite works well
+    // 模型文件相关常量
+    // whisper-tiny.tflite 和 whisper-base-nooptim.en.tflite 都能很好地工作
     private static final String DEFAULT_MODEL_TO_USE = "whisper-tiny.tflite";
-    // English only model ends with extension ".en.tflite"
+    // 仅英语模型以 ".en.tflite" 结尾
     private static final String ENGLISH_ONLY_MODEL_EXTENSION = ".en.tflite";
+    // 词汇表文件名称
     private static final String ENGLISH_ONLY_VOCAB_FILE = "filters_vocab_en.bin";
     private static final String MULTILINGUAL_VOCAB_FILE = "filters_vocab_multilingual.bin";
+    // 需要从assets复制到SD卡的文件扩展名
     private static final String[] EXTENSIONS_TO_COPY = {"tflite", "bin", "wav", "pcm"};
 
-    private TextView tvStatus;
-    private TextView tvResult;
-    private FloatingActionButton fabCopy;
-    private Button btnRecord;
-    private Button btnPlay;
-    private Button btnTranscribe;
+    // UI组件
+    private TextView tvStatus;      // 状态显示文本框
+    private TextView tvResult;      // 结果显示文本框
+    private FloatingActionButton fabCopy;    // 复制按钮
+    private Button btnRecord;       // 录音按钮
+    private Button btnPlay;         // 播放按钮
+    private Button btnTranscribe;   // 转录按钮
 
-    private Player mPlayer = null;
-    private Recorder mRecorder = null;
-    private Whisper mWhisper = null;
+    // 核心功能组件
+    private Player mPlayer = null;      // 音频播放器
+    private Recorder mRecorder = null;  // 录音器
+    private Whisper mWhisper = null;    // Whisper语音识别模型
 
-    private File sdcardDataFolder = null;
-    private File selectedWaveFile = null;
-    private File selectedTfliteFile = null;
+    // 文件相关
+    private File sdcardDataFolder = null;    // SD卡数据文件夹
+    private File selectedWaveFile = null;    // 选中的音频文件
+    private File selectedTfliteFile = null;  // 选中的模型文件
 
-    private long startTime = 0;
-    private final boolean loopTesting = false;
-    private final SharedResource transcriptionSync = new SharedResource();
-    private final Handler handler = new Handler(Looper.getMainLooper());
+    // 其他工具变量
+    private long startTime = 0;     // 计时起点
+    private final boolean loopTesting = false;    // 循环测试开关
+    private final SharedResource transcriptionSync = new SharedResource();  // 转录同步工具
+    private final Handler handler = new Handler(Looper.getMainLooper());   // UI线程Handler
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -232,14 +239,18 @@ public class MainActivity extends AppCompatActivity {
 //        testParallelProcessing();
     }
 
-    // Model initialization
+    // 初始化Whisper模型
     private void initModel(File modelFile) {
+        // 判断是否为多语言模型
         boolean isMultilingualModel = !(modelFile.getName().endsWith(ENGLISH_ONLY_MODEL_EXTENSION));
         String vocabFileName = isMultilingualModel ? MULTILINGUAL_VOCAB_FILE : ENGLISH_ONLY_VOCAB_FILE;
         File vocabFile = new File(sdcardDataFolder, vocabFileName);
 
+        // 创建并加载模型
         mWhisper = new Whisper(this);
         mWhisper.loadModel(modelFile, vocabFile, isMultilingualModel);
+        
+        // 设置监听器处理模型状态更新和结果
         mWhisper.setListener(new Whisper.WhisperListener() {
             @Override
             public void onUpdateReceived(String message) {
@@ -271,6 +282,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // 释放模型资源
     private void deinitModel() {
         if (mWhisper != null) {
             mWhisper.unloadModel();
@@ -278,6 +290,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // 创建文件列表的适配器，用于显示下拉列表
     private @NonNull ArrayAdapter<File> getFileArrayAdapter(ArrayList<File> waveFiles) {
         ArrayAdapter<File> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, waveFiles) {
             @Override
@@ -300,6 +313,7 @@ public class MainActivity extends AppCompatActivity {
         return adapter;
     }
 
+    // 检查录音权限
     private void checkRecordPermission() {
         int permission = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
         if (permission == PackageManager.PERMISSION_GRANTED) {
@@ -320,7 +334,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Recording calls
+    // 开始录音
     private void startRecording() {
         checkRecordPermission();
 
@@ -329,22 +343,24 @@ public class MainActivity extends AppCompatActivity {
         mRecorder.start();
     }
 
+    // 停止录音
     private void stopRecording() {
         mRecorder.stop();
     }
 
-    // Transcription calls
+    // 开始语音转录
     private void startTranscription(String waveFilePath) {
         mWhisper.setFilePath(waveFilePath);
         mWhisper.setAction(Whisper.ACTION_TRANSCRIBE);
         mWhisper.start();
     }
 
+    // 停止语音转录
     private void stopTranscription() {
         mWhisper.stop();
     }
 
-    // Copy assets with specified extensions to destination folder
+    // 将assets资源复制到SD卡
     private static void copyAssetsToSdcard(Context context, File destFolder, String[] extensions) {
         AssetManager assetManager = context.getAssets();
 
@@ -381,6 +397,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // 获取指定扩展名的文件列表
     public ArrayList<File> getFilesWithExtension(File directory, String extension) {
         ArrayList<File> filteredFiles = new ArrayList<>();
 
@@ -401,8 +418,9 @@ public class MainActivity extends AppCompatActivity {
         return filteredFiles;
     }
 
+    // 用于线程同步的工具类
     static class SharedResource {
-        // Synchronized method for Thread 1 to wait for a signal with a timeout
+        // 等待信号的同步方法，带超时机制
         public synchronized boolean waitForSignalWithTimeout(long timeoutMillis) {
             long startTime = System.currentTimeMillis();
 
@@ -423,9 +441,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // Synchronized method for Thread 2 to send a signal
+        // 发送信号的同步方法
         public synchronized void sendSignal() {
-            notify();  // Notifies the waiting thread
+            notify();  // 通知等待的线程
         }
     }
 
